@@ -5,7 +5,7 @@
 * docker-ce and recommended packages
 * nvidia-container-toolkit
 * nvidia-driver
-* python3-venv package
+* python3-venv
 
 ### Master Node
 * Install the master controller. Follow command as:
