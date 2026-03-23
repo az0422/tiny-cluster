@@ -1,0 +1,74 @@
+default: |
+  usage: tiny [OPTIONS] COMMAND WORKER
+
+  Common Commands:
+    submit          Submit and run a new job
+    list            Show list of jobs
+    stop            Stop a job
+    logs            Fetch the logs of job
+
+  Global Options:
+    -p, --port      Set the port number of WORKER node if port is not default
+    -h, --help      Show help message
+
+  Run 'tiny COMMAND --help' for more information on a command.
+
+submit: |
+  usage: tiny [OPTIONS] submit WORKER job.yaml
+
+  Form of job.yaml:
+  name: <job name>
+  env: <environment variables>
+  venv: <path of python venv>
+  path: <project path>
+  args: <project args>
+
+  Global Options:
+    -p, --port      Set the port number of WORKER node if port is not default
+    -h, --help      Show help message
+
+    Run 'tiny COMMAND --help' for more information on a command.
+
+list: |
+  usage: tiny [OPTIONS] list WORKER
+
+  Global Options:
+    -p, --port      Set the port number of WORKER node if port is not default
+    -h, --help      Show help message
+
+stop: |
+  usage: tiny [OPTIONS] stop WORKER job_name
+
+  Stop a job in worker node
+
+  Global Options:
+    -p, --port      Set the port number of WORKER node if port is not default
+    -h, --help      Show help message
+
+    Run 'tiny COMMAND --help' for more information on a command.
+
+logs: |
+  usage: tiny [OPTIONS] logs WORKER job_name [COMMAND OPTIONS]
+
+  Show some job logs
+
+  Command Options:
+    -t, --tail      Limit logs for showing. default is all rows
+
+  Global Options:
+    -p, --port      Set the port number of WORKER node if port is not default
+    -h, --help      Show help message
+
+    Run 'tiny COMMAND --help' for more information on a command.
+
+venv: |
+  usage: tiny [OPTIONS] venv WORKER venv_path
+
+  Create new python venv
+  If venv path is set relative path, it will be started by $HOME path
+
+  Global Options:
+    -p, --port      Set the port number of WORKER node if port is not default
+    -h, --help      Show help message
+
+    Run 'tiny COMMAND --help' for more information on a command.

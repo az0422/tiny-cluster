@@ -1,0 +1,25 @@
+#!/bin/bash
+INSTALL_PATH=$HOME/.local/opt/tiny-master
+VENV_PATH=$INSTALL_PATH/.venv
+
+mkdir -p $INSTALL_PATH
+mkdir -p $HOME/.local/bin
+cp -r src/* $HOME/.local/opt/tiny-master
+
+if [[ $VENV_PATH ]]; then
+    rm -rf $VENV_PATH
+fi
+
+python3 -m venv $INSTALL_PATH/.venv
+$VENV_PATH/bin/pip install -r requirements.txt
+echo $INSTALL_PATH/.venv/bin/python3 $INSTALL_PATH/tiny.py \"\$@\" > $HOME/.local/bin/tiny
+chmod +x $HOME/.local/bin/tiny
+
+if [[ ! "$PATH" == *".local/bin"* ]]; then
+    echo "" >> ~/.bashrc
+    echo "export PATH=$PATH:$HOME/.local/bin" >> ~/.bashrc
+
+    echo ""
+    echo "\$HOME/.local/bin has been added in PATH variable into \`\$HOME/.bashrc\`."
+    echo "Please run a command to apply PATH: \`source \$HOME/.bashrc\`."
+fi

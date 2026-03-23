@@ -1,0 +1,28 @@
+RUN apt-get update && apt-get dist-upgrade -y &&\
+    apt-get install -y sudo nano wget git zip unzip ssh python3 python3-pip python3-venv openssl \
+    libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
+
+## IF YOU WANT TO INSTALL MORE PACKAGES, PLEASE WRITE COMMAND DOWN HERE
+
+RUN bash -c 'if [[ $(ls /home) == *"ubuntu"* ]]; then userdel -r ubuntu; fi' &&\
+    useradd --create-home --shell /bin/bash -u $userid $username &&\
+    mkdir -p /home/$username/.local/bin &&\
+    mkdir -p /home/$username/.local/opt/tiny-worker
+
+COPY src /home/$username/.local/opt/tiny-worker
+
+RUN chown -R $username:$username /home/$username
+
+USER $username
+WORKDIR /home/$username
+
+RUN echo "export PATH=\$PATH:$HOME/.local/bin" >> $HOME/.bashrc &&\
+    cd $HOME/.local/opt/tiny-worker &&\
+    python3 -m venv .venv &&\
+    .venv/bin/pip install -r requirements.txt
+
+WORKDIR /home/$username/.local/opt/tiny-worker
+RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 36500 -nodes -subj "/CN=worker" -addext "subjectAltName=DNS:worker,IP:127.0.0.1" &&\
+    echo $PASSWORD > password
+
+CMD MAX_LOG_LENGTH=1000000000 MAX_LOG_COUNT=10000 .venv/bin/python3 -m gunicorn main:app --bind 0.0.0.0:8900 --certfile cert.pem --keyfile key.pem

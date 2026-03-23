@@ -1,0 +1,128 @@
+#!/bin/bash
+DATASETS_PATH_ROOT="$HOME/datasets"
+DATASETS_PATH_MOUNT="$HOME/datasets"
+PROJECTS_PATH_ROOT="$HOME/projects"
+PROJECTS_PATH_MOUNT="$HOME/projects"
+VENV_PATH_ROOT="$HOME/venv"
+VENV_PATH_MOUNT="$HOME/venv"
+PORT_NUMBER="8900"
+CONTAINER_ORIGINAL="nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04"
+CONTAINER_NAME="deep-learning-worker"
+TIME_ZONE=$(cat /etc/timezone)
+PASSWORD=""
+
+read -p "Where is projects root path? (default: $PROJECTS_PATH_ROOT): " projects_path_root
+
+if [ ! $projects_path_root == "" ] && [ ! -d $projects_path_root ]; then
+    echo "try to create \`$projects_path_root\` path..."
+    { mkdir -p $projects_path_root; echo "create \`$projects_path_root\` successfully"; } || { echo "failed to create projects root path"; exit 1; }
+    PROJECTS_PATH_ROOT=$projects_path_root
+fi
+
+read -p "Where is datasets root path? (default: $DATASETS_PATH_ROOT): " datasets_path_root
+
+if [ ! $datasets_path_root == "" ] && [ ! -d $datasets_path_root ]; then
+    echo "try to create \`$datasets_path_root\` path..."
+    { mkdir -p $datasets_path_root; echo "create \`$datasets_path_root\` successfully"; } || { echo "failed to create datasets root path"; exit 1; }
+    VENV_PATH_ROOT=$datasets_path_root
+fi
+
+read -p "Where is venv root path? (default: $VENV_PATH_ROOT): " venv_path_root
+
+if [ ! $venv_path_root == "" ] && [ ! -d $venv_path_root ]; then
+    echo "try to create \`$venv_path_root\` path..."
+    { mkdir -p $venv_path_root; echo "create \`$venv_path_root\` successfully"; } || { echo "failed to create venv root path"; exit 1; }
+    DATASETS_PATH_ROOT=$venv_path_root
+fi
+
+read -p "Where do you want to mount the projects path in container? (default: $PROJECTS_PATH_MOUNT): " projects_path_mount
+read -p "Where do you want to mount the datasets path in container? (default: $DATASETS_PATH_MOUNT): " datasets_path_mount
+read -p "Where do you want to mount the venv path in container? (default: $VENV_PATH_MOUNT): " venv_path_mount
+
+if [ ! $projects_path_mount == "" ]; then
+    PROJECTS_PATH_MOUNT=$projects_path_mount
+fi
+
+if [ ! $datasets_path_mount == "" ]; then
+    DATASETS_PATH_MOUNT=$datasets_path_mount
+fi
+
+if [ ! $venv_path_mount == "" ]; then
+    VENV_PATH_MOUNT=$venv_path_mount
+fi
+
+read -p "What do you want to change worker's port? (default: $PORT_NUMBER): " port_number
+
+if [ ! $port_number == "" ] && [[ $port_number =~ ^[0-9]+$ ]]; then
+    PORT_NUMBER=$port_number
+elif [ ! $port_number == "" ]; then
+    echo "invalid port number: $port_number"
+    exit 1;
+fi
+
+read -p "What do you want container template? (default: $CONTAINER_ORIGINAL): " container_original
+
+if [ ! $container_original == "" ]; then
+    CONTAINER_ORIGINAL=$container_original
+fi
+
+{ docker pull $CONTAINER_ORIGINAL; } || { echo "no such as \`$CONTAINER_ORIGINAL\` template"; exit 1; }
+
+read -p "What do you want container name? (default: $CONTAINER_NAME): " container_name
+
+if [ ! $container_name == "" ]; then
+    CONTAINER_NAME=$container_name
+fi
+
+if [[ $(ls) == *"$CONTAINER_NAME"* ]]; then
+    echo "The container name is duplicated"
+    exit 1;
+fi
+
+read -sp "Enter the password for access worker node: " password_first
+echo ""
+read -sp "Re-enter the password: " password_second
+echo ""
+
+if [ ! $password_first == $password_second ]; then
+    echo "Passwords are different. Please try again."
+    exit 1;
+else
+    PASSWORD=$(python3 -c "import hashlib; has = hashlib.sha512(b'$password_first'); print(has.hexdigest());")
+fi
+
+mkdir -p $CONTAINER_NAME
+echo "FROM $CONTAINER_ORIGINAL
+ENV username=$USER
+ENV userid=$UID
+ARG PASSWORD=""
+
+RUN ln -snf /usr/share/zoneinfo/$TIME_ZONE /etc/localtime
+" >> $CONTAINER_NAME/Dockerfile
+
+cat Dockerfile_template >> $CONTAINER_NAME/Dockerfile
+
+echo "services:
+    $CONTAINER_NAME:
+        tty: true
+        stdin_open: true
+        shm_size: 8G
+        image: $CONTAINER_NAME-image
+        build:
+            context: ../
+            dockerfile: $CONTAINER_NAME/Dockerfile
+            args:
+            - PASSWORD=$PASSWORD
+        container_name: $CONTAINER_NAME
+        volumes:
+        - $DATASETS_PATH_ROOT:$DATASETS_PATH_MOUNT
+        - $PROJECTS_PATH_ROOT:$PROJECTS_PATH_MOUNT
+        - $VENV_PATH_ROOT:$VENV_PATH_MOUNT
+        ports:
+        - $PORT_NUMBER:8900
+        gpus: all
+" >> $CONTAINER_NAME/docker-compose.yaml
+
+echo ""
+echo "Configuration is finished. Please do \`docker compose up -d --build\` in ./$CONTAINER_NAME path"
+echo "If you want to install more packages, you can modify ./$CONTAINER_NAME/Dockerfile"

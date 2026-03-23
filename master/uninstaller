@@ -1,0 +1,11 @@
+#!/bin/bash
+INSTALL_PATH=$HOME/.local/opt/tiny-master
+if [[ $HOME/.local/bin/tiny ]]; then
+    rm $HOME/.local/bin/tiny
+fi
+
+if [[ $INSTALL_PATH ]]; then
+    rm -rf $INSTALL_PATH
+fi
+
+echo "uninstall is finished"
