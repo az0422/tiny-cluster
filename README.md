@@ -1,7 +1,7 @@
 # Tiny Cluster Framework
 ## How to Install and Setup
 ### System Requirements 
-* OS Ubuntu 22.04 LTS
+* OS: Ubuntu 22.04 LTS or Later
 * docker-ce and recommended packages
 * nvidia-container-toolkit
 * nvidia-driver
