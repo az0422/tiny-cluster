@@ -108,6 +108,7 @@ echo "services:
         stdin_open: true
         shm_size: 8G
         image: $CONTAINER_NAME-image
+        restart: unless-stopped
         build:
             context: ../
             dockerfile: $CONTAINER_NAME/Dockerfile
