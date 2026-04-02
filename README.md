@@ -14,6 +14,13 @@ git clone https://github.com/az0422/tiny-cluster
 cd tiny-cluster/master
 ./installer
 ```
+* Install the update:
+```
+cd tiny-cluster
+git pull
+cd master
+./installer
+```
 * The `tiny` command will be installed on `$HOME/.local` path
 * If you want to see detail, command to `tiny -h`
 
@@ -25,6 +32,16 @@ cd tiny-cluster/worker
 ./configure
 ```
 * And then enter to `container name` path to build container image and create container
+```
+cd <container name>
+docker compose up -d --build
+```
+* If install the update:
+```
+cd <container name>
+docker compose down
+docker compose up -d --build
+```
 
 ## How to Use
 ### Job YAML format
@@ -66,4 +83,5 @@ args: ['train.py', 'option=train/resnet18.yaml']
 * Show list of jobs: `tiny list <WORKER IP>`
 * Show logs of a job: `tiny logs <WORKER IP> job_name`
 * Stop a job: `tiny logs <WORKER IP> job_name`
+* Prune stopped jobs and logs: `tiny prune <WORKER IP>`
 * Restart worker node: `ssh <USER>@<WORKER IP> docker restart <container name>`
