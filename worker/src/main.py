@@ -100,10 +100,10 @@ def action_logs():
     if name is None:
         return flask.Response("no such as job name: %s" % j_data["name"], 404)
     
-    if not os.path.isfile(name + ".sqlite3"):
+    if not os.path.isfile("logs/" + name + ".sqlite3"):
         return flask.Response("no such as log file of job: %s" % name, 404)
     
-    conn = sqlite3.connect(name + ".sqlite3")
+    conn = sqlite3.connect("logs/" + name + ".sqlite3")
     cursor = conn.cursor()
 
     if j_data["tail"] == 0:
