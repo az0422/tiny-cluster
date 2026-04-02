@@ -6,6 +6,7 @@ default: |
     list            Show list of jobs
     stop            Stop a job
     logs            Fetch the logs of job
+    prune           Remove all stopped jobs and logs
 
   Global Options:
     -p, --port      Set the port number of WORKER node if port is not default
@@ -66,6 +67,17 @@ venv: |
 
   Create new python venv
   If venv path is set relative path, it will be started by $HOME path
+
+  Global Options:
+    -p, --port      Set the port number of WORKER node if port is not default
+    -h, --help      Show help message
+
+    Run 'tiny COMMAND --help' for more information on a command.
+
+prune: |
+  usage: tiny [OPTIONS] prune WORKER
+
+  Remove all stopped jobs and logs in WORKER
 
   Global Options:
     -p, --port      Set the port number of WORKER node if port is not default

@@ -1,5 +1,4 @@
 import flask
-import json
 import hashlib
 import os
 import sqlite3
@@ -7,6 +6,7 @@ import sqlite3
 from modules.worker import RunJob
 
 app = flask.Flask("tiny-cluster worker agent")
+os.makedirs("logs", exist_ok=True)
 workers = {}
 
 def password(pwd):
@@ -37,7 +37,7 @@ def action_submit():
 
     workers.update({job.get_name(): job})
 
-    return "the submission has been successfully"
+    return "The submission has been successfully"
 
 @app.route("/job_list", methods=["POST"])
 def action_list():
@@ -112,3 +112,23 @@ def action_logs():
     else:
         cursor.execute("SELECT message FROM logs WHERE type IN ('STDOUT', 'STDERR') AND id IN (SELECT id FROM logs ORDER BY id DESC LIMIT ?) ORDER BY id ASC", (j_data["tail"],))
         return flask.jsonify(cursor.fetchall())
+
+@app.route("/prune", methods=["POST"])
+def action_prune():
+    j_data = flask.request.get_json()
+    
+    if not password(j_data["password"]):
+        return flask.Response("ERROR: password does not be matched", 400)
+
+    remove_list = []
+
+    for name in workers.keys():
+        if workers[name].is_alive(): continue
+
+        os.remove("logs/%s.sqlite3" % name)
+        remove_list.append(name)
+    
+    for name in remove_list:
+        _ = workers.pop(name)
+    
+    return "The prune jobs and logs successfully."

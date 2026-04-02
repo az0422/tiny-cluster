@@ -37,7 +37,7 @@ def show_help(args_list, args_dict, help_data):
         print(help_data["default"])
         return False
     
-    if args_list[0] not in ("submit", "list", "logs", "stop", "venv"):
+    if args_list[0] not in ("submit", "list", "logs", "stop", "prune"):
         print(help_data["default"])
         return False
     
@@ -56,9 +56,9 @@ def show_help(args_list, args_dict, help_data):
     if args_list[0] == "stop" and (len(args_list) != 3 or "-h" in args_dict.keys() or "--help" in args_dict.keys()):
         print(help_data["stop"])
         return False
-    
-    if args_list[0] == "venv" and (len(args_list) != 3 or "-h" in args_dict.keys() or "--help" in args_dict.keys()):
-        print(help_data["venv"])
+
+    if args_list[0] == "prune" and (len(args_list) != 2 or "-h" in args_dict.keys() or "--help" in args_dict.keys()):
+        print(help_data["prune"])
         return False
     
     return True
@@ -127,6 +127,16 @@ def view_logs(worker, job, port, password, tail):
     
     return response_list
 
+def prune_job(worker, port, password):
+    j_data = {"password": password}
+    response = requests.post(
+        "https://%s:%s/prune" % (worker, port),
+        json=j_data,
+        verify=False,
+    )
+
+    return response.text
+
 def main(*args):
     args_list, args_dict = args_parse(args)
     help_data = read_help()
@@ -176,6 +186,11 @@ def main(*args):
                 sys.stdout.buffer.write(chunk)
 
             ret = ""
+    
+    elif args_list[0] == "prune":
+        _, worker = args_list
+
+        ret = prune_job(worker, port, password)
 
     print(ret)
 

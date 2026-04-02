@@ -33,7 +33,7 @@ class LogWriter(multiprocessing.Process):
         self.name = name
     
     def run(self):
-        conn = sqlite3.connect("%s.sqlite3" % self.name)
+        conn = sqlite3.connect("logs/%s.sqlite3" % self.name)
         cursor = conn.cursor()
         
         conn.execute("PRAGMA journal_mode=WAL;")
